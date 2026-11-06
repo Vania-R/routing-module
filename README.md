@@ -78,4 +78,10 @@ make test
 
 # Run interactive 4-mode demo with mid-run reconfiguration, table output, and plot generation
 make demo
+
+# Run Icarus Verilog RTL simulation
+make sim
+
+# Compare RTL trace against Python reference trace
+make compare
 ```

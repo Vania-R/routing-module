@@ -19,6 +19,10 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+sim.vvp
+sim.vcd
+out/
+tb/stimulus.hex
 
 # Traces / Outputs generated during tests (keep repository clean)
 traces/*.csv
@@ -26,3 +30,5 @@ traces/*.stim
 test_*.csv
 test_*.stim
 test_*.png
+sim.vvp
+sim.vcd
