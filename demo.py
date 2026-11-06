@@ -8,7 +8,10 @@ prints structured readable tables, and saves an analytical matplotlib plot.
 import sys
 import os
 
-# Use non-interactive backend for headless headless execution
+# Set writable directory for matplotlib cache to avoid warnings
+os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+
+# Use non-interactive backend for headless execution
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
