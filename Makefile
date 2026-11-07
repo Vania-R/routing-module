@@ -33,7 +33,7 @@ compare-random:
 	$(VVP) sim.vvp
 	@$(PYTHON) compare_traces.py
 
-demo-rtl: sim
+demo-rtl: compare
 	$(STREAMLIT) run app.py
 
 clean:

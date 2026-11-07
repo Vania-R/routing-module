@@ -35,3 +35,16 @@ status is ROUTED or DROPPED. "cycle" is the event index, not latency.
 ## Not done
 
 Integration with the policy engine (teammate A) and the dashboard (teammate B), synthesis, Zedboard.
+
+## Seventh function (used by mode 3)
+
+set_layer_bypass(layer, enable)
+
+## Where in the code
+
+Python model: src/routing_module/core.py
+set_routing_mode (line 91), set_active_layers (99), set_active_neurons (117), load_route_table (144), set_tdm_schedule (155), set_layer_bypass (171), commit (179), route (236), route_event (256).
+
+Verilog: rtl/router.v
+Command codes CFG_CMD_* are defined at lines 54-60. They are handled at lines 202-243. Commands are staged in shadow registers and latched on CFG_CMD_COMMIT.
+(Line numbers are as of the current commit and may shift.)
