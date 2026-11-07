@@ -1,6 +1,6 @@
 # Reconfigurable Neuron-Synapse Routing Module
 
-A standalone Python reference model of a reconfigurable neuron-synapse routing module for neuromorphic hardware architectures.
+A Python reference model and a Verilog (Icarus-simulated) implementation of a reconfigurable neuron-synapse routing module. Both are checked against each other on the same stimulus.
 
 ## Architecture Overview
 
@@ -91,3 +91,26 @@ make compare-random
 # Run RTL simulation and launch interactive UI trace viewer
 make demo-rtl
 ```
+
+## Seventh API function
+
+set_layer_bypass(layer, enable) is used by mode 3. See docs/MODES.md for where each function lives in the code.
+
+## RTL, verification and viewer
+
+make test            Python unit tests (32)
+make compare         Run RTL in Icarus Verilog, diff its trace against the Python model, write PASS or FAIL to out/compare_result.txt
+make compare-random  Same check on seeded random stimulus (seed 42, 300 events)
+make demo-rtl        Run the comparison, then open the Streamlit viewer (read-only, no routing logic)
+
+Trace columns (out/rtl_trace.txt): cycle,mode,src,dst,status,layer,reason
+Config log columns (out/config_log.txt): cycle,command,args
+Config log cycles are clock cycles. Trace cycles are event indices, not latency.
+
+## Limits
+
+3 hidden layers x 8 neurons. 64 staged route entries per commit; extra loads are ignored. Random check used one seed.
+
+## Not done
+
+Integration with the policy engine (teammate A) and the dashboard (teammate B), synthesis, Zedboard or any hardware, real latency measurement.
