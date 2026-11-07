@@ -14,6 +14,7 @@ Status: simulated in Icarus Verilog only. Not synthesized, not on a board, not y
 ## API the policy engine calls
 
 ```
+```
 set_routing_mode(mode)
 set_active_layers(n)
 set_active_neurons(layer, k)
