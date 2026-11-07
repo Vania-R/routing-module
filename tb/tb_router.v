@@ -76,6 +76,15 @@ module tb_router;
     initial clk = 1'b0;
     always #5 clk = ~clk;
 
+    // Configuration Command Opcodes matching RTL
+    localparam CFG_CMD_SET_MODE    = 4'd1;
+    localparam CFG_CMD_SET_LAYERS  = 4'd2;
+    localparam CFG_CMD_SET_NEURONS = 4'd3;
+    localparam CFG_CMD_LOAD_ROUTE  = 4'd4;
+    localparam CFG_CMD_SET_TDM     = 4'd5;
+    localparam CFG_CMD_SET_BYPASS  = 4'd6;
+    localparam CFG_CMD_COMMIT      = 4'd7;
+
     // Reason codes matching RTL
     localparam REASON_CROSSBAR_OK      = 4'd1;
     localparam REASON_NEURON_MASKED    = 4'd2;
@@ -95,7 +104,18 @@ module tb_router;
     reg [63:0] stim_mem [0:2047];
     integer stim_idx;
     integer trace_fd;
+    integer cfg_log_fd;
+    reg [31:0] clk_cycle;
     reg [63:0] cur_entry;
+
+    // Clock cycle counter (active after reset deassertion)
+    always @(posedge clk) begin
+        if (rst) begin
+            clk_cycle <= 32'd0;
+        end else begin
+            clk_cycle <= clk_cycle + 32'd1;
+        end
+    end
 
     reg [8*32-1:0] dst_str;
     reg [8*64-1:0] reason_str;
@@ -174,10 +194,19 @@ module tb_router;
         end
         $fdisplay(trace_fd, "cycle,mode,src,dst,status,layer,reason");
 
+        // Open config log file and write CSV header
+        cfg_log_fd = $fopen("out/config_log.txt", "w");
+        if (cfg_log_fd == 0) begin
+            $display("ERROR: Failed to open out/config_log.txt for writing");
+            $finish;
+        end
+        $fdisplay(cfg_log_fd, "cycle,command,args");
+
         // Load stimulus hex file
         $readmemh("tb/stimulus.hex", stim_mem);
 
         // Initialize signals
+        clk_cycle     = 32'd0;
         rst           = 1'b1;
         cfg_valid     = 1'b0;
         cfg_cmd       = 4'd0;
@@ -216,6 +245,26 @@ module tb_router;
                     cfg_cmd   <= cur_entry[59:56];
                     cfg_arg0  <= cur_entry[49:40];
                     cfg_arg1  <= cur_entry[31:16];
+
+                    // Write command entry to out/config_log.txt
+                    case (cur_entry[59:56])
+                        CFG_CMD_SET_MODE:
+                            $fdisplay(cfg_log_fd, "%0d,set_routing_mode,%0d", clk_cycle, cur_entry[49:40]);
+                        CFG_CMD_SET_LAYERS:
+                            $fdisplay(cfg_log_fd, "%0d,set_active_layers,%0d", clk_cycle, cur_entry[49:40]);
+                        CFG_CMD_SET_NEURONS:
+                            $fdisplay(cfg_log_fd, "%0d,set_active_neurons,%0d %0d", clk_cycle, cur_entry[49:40], cur_entry[31:16]);
+                        CFG_CMD_LOAD_ROUTE:
+                            $fdisplay(cfg_log_fd, "%0d,load_route_table,%0d 0x%0x", clk_cycle, cur_entry[49:40], cur_entry[31:16]);
+                        CFG_CMD_SET_TDM:
+                            $fdisplay(cfg_log_fd, "%0d,set_tdm_schedule,%0d %0d", clk_cycle, cur_entry[49:40], cur_entry[31:16]);
+                        CFG_CMD_SET_BYPASS:
+                            $fdisplay(cfg_log_fd, "%0d,set_layer_bypass,%0d %0d", clk_cycle, cur_entry[49:40], cur_entry[31:16]);
+                        CFG_CMD_COMMIT:
+                            $fdisplay(cfg_log_fd, "%0d,commit,", clk_cycle);
+                        default: ;
+                    endcase
+
                     @(posedge clk);
                     cfg_valid <= 1'b0;
                     cfg_cmd   <= 4'd0;
@@ -258,6 +307,7 @@ module tb_router;
         // Drain pipeline and finish
         repeat (10) @(posedge clk);
         $fclose(trace_fd);
+        $fclose(cfg_log_fd);
         $display("Simulation complete. Trace written to out/rtl_trace.txt");
         $finish;
     end

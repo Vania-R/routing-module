@@ -7,13 +7,21 @@ import sys
 def main():
     py_trace_path = "out/py_trace.txt"
     rtl_trace_path = "out/rtl_trace.txt"
+    res_path = "out/compare_result.txt"
+    os.makedirs("out", exist_ok=True)
 
     if not os.path.exists(py_trace_path):
-        print(f"FAIL: Reference Python trace {py_trace_path} does not exist.")
+        msg = f"FAIL: Reference Python trace {py_trace_path} does not exist."
+        print(msg)
+        with open(res_path, "w", encoding="utf-8") as f:
+            f.write(msg + "\n")
         sys.exit(1)
 
     if not os.path.exists(rtl_trace_path):
-        print(f"FAIL: RTL trace {rtl_trace_path} does not exist.")
+        msg = f"FAIL: RTL trace {rtl_trace_path} does not exist."
+        print(msg)
+        with open(res_path, "w", encoding="utf-8") as f:
+            f.write(msg + "\n")
         sys.exit(1)
 
     with open(py_trace_path, "r", encoding="utf-8") as f_py:
@@ -27,11 +35,14 @@ def main():
         p = py_lines[i] if i < len(py_lines) else "<EOF>"
         r = rtl_lines[i] if i < len(rtl_lines) else "<EOF>"
         if p != r:
-            print(f"FAIL: Mismatch at line {i + 1}:")
-            print(f"  Python: {p}")
-            print(f"  RTL:    {r}")
+            msg = f"FAIL: Mismatch at line {i + 1}:\n  Python: {p}\n  RTL:    {r}"
+            print(msg)
+            with open(res_path, "w", encoding="utf-8") as f:
+                f.write(msg + "\n")
             sys.exit(1)
 
+    with open(res_path, "w", encoding="utf-8") as f:
+        f.write("PASS\n")
     print("PASS")
     sys.exit(0)
 

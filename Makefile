@@ -3,6 +3,7 @@
 VENV_BIN := .venv/bin
 PYTHON   := $(VENV_BIN)/python
 PYTEST   := $(VENV_BIN)/pytest
+STREAMLIT:= $(VENV_BIN)/streamlit
 IVERILOG := iverilog
 VVP      := vvp
 
@@ -33,7 +34,7 @@ compare-random:
 	@$(PYTHON) compare_traces.py
 
 demo-rtl: sim
-	$(PYTHON) viewer.py
+	$(STREAMLIT) run app.py
 
 clean:
 	rm -rf __pycache__ src/routing_module/__pycache__ tests/__pycache__ .pytest_cache
