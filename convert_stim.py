@@ -152,9 +152,9 @@ def convert(gen: StimulusGenerator, hex_path: str, py_trace_path: str):
                 )
             )
 
-    # Append EOF sentinel and pad to 256 words for clean $readmemh loading
+    # Append EOF sentinel and pad to 2048 words for clean $readmemh loading
     hex_lines.append(pack_command(CMD_EOF))
-    while len(hex_lines) < 256:
+    while len(hex_lines) < 2048:
         hex_lines.append(pack_command(CMD_EOF))
 
     # Write hex file

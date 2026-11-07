@@ -87,10 +87,10 @@ module router (
     reg [15:0] staged_tdm_valid;       // 1 bit per slot indicating scheduled layer
     reg [2:0] staged_bypass_layers;
 
-    // Staged Route Table Buffer (up to 32 staged updates before commit)
-    reg [9:0] staged_route_src  [0:31];
-    reg [7:0] staged_route_mask [0:31];
-    reg [5:0] staged_route_count;
+    // Staged Route Table Buffer (up to 64 staged updates before commit)
+    reg [9:0] staged_route_src  [0:63];
+    reg [7:0] staged_route_mask [0:63];
+    reg [6:0] staged_route_count;
 
     // -------------------------------------------------------------------------
     // Active Configuration Registers (Latched on CFG_CMD_COMMIT)
@@ -109,7 +109,7 @@ module router (
 
     // Commit state machine for sequential RAM updates between inputs
     reg       committing;
-    reg [5:0] commit_idx;
+    reg [6:0] commit_idx;
 
     // -------------------------------------------------------------------------
     // Flow Control: Ready Generation
@@ -179,20 +179,20 @@ module router (
                 active_lut_mask[i] <= 8'h00;
             end
 
-            staged_route_count <= 6'd0;
+            staged_route_count <= 7'd0;
             committing         <= 1'b0;
-            commit_idx         <= 6'd0;
+            commit_idx         <= 7'd0;
         end else begin
             // 1. Commit state machine: writes staged route table entries to active LUT
             if (committing) begin
                 if (commit_idx < staged_route_count) begin
                     active_lut_val[staged_route_src[commit_idx]]  <= (staged_route_mask[commit_idx] != 8'h00);
                     active_lut_mask[staged_route_src[commit_idx]] <= staged_route_mask[commit_idx];
-                    commit_idx <= commit_idx + 6'd1;
+                    commit_idx <= commit_idx + 7'd1;
                 end else begin
                     committing         <= 1'b0;
-                    staged_route_count <= 6'd0;
-                    commit_idx         <= 6'd0;
+                    staged_route_count <= 7'd0;
+                    commit_idx         <= 7'd0;
                 end
             end
 
@@ -220,10 +220,10 @@ module router (
                     end
 
                     CFG_CMD_LOAD_ROUTE: begin
-                        if (staged_route_count < 6'd32) begin
+                        if (staged_route_count < 7'd64) begin
                             staged_route_src[staged_route_count]  <= cfg_arg0[9:0];
                             staged_route_mask[staged_route_count] <= cfg_arg1[7:0];
-                            staged_route_count <= staged_route_count + 6'd1;
+                            staged_route_count <= staged_route_count + 7'd1;
                         end
                     end
 
@@ -256,9 +256,9 @@ module router (
                         end
 
                         // If route table updates were staged, enter commit state
-                        if (staged_route_count > 6'd0) begin
+                        if (staged_route_count > 7'd0) begin
                             committing <= 1'b1;
-                            commit_idx <= 6'd0;
+                            commit_idx <= 7'd0;
                         end
                     end
 
@@ -374,7 +374,7 @@ module router (
             m2_dst         = 8'hFF;
             m2_dst_is_neg1 = 1'b1;
             m2_reason      = REASON_SLOT_MISMATCH;
-            m2_aux         = {active_slot, 2'd0, sched_layer};
+            m2_aux         = {active_slot, 1'b0, slot_is_sched, sched_layer};
         end else if (!active_layer_mask[in_layer]) begin
             m2_status      = 1'b0;
             m2_dst         = 8'hFF;

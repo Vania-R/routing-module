@@ -84,4 +84,10 @@ make sim
 
 # Compare RTL trace against Python reference trace
 make compare
+
+# Run seeded random ~300-event stress test across all 4 modes
+make compare-random
+
+# Run RTL simulation and launch interactive UI trace viewer
+make demo-rtl
 ```

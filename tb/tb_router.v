@@ -92,7 +92,7 @@ module tb_router;
     localparam REASON_STANDARD_ROUTED  = 4'd13;
 
     // Stimulus memory
-    reg [63:0] stim_mem [0:255];
+    reg [63:0] stim_mem [0:2047];
     integer stim_idx;
     integer trace_fd;
     reg [63:0] cur_entry;
@@ -118,7 +118,7 @@ module tb_router;
             if (out_dst_is_neg1) begin
                 dst_str = "-1";
             end else if (out_dst > 8'd9) begin
-                $sformat(dst_str, "0x%02x", out_dst);
+                $sformat(dst_str, "0x%0x", out_dst);
             end else begin
                 $sformat(dst_str, "%0d", out_dst);
             end
@@ -133,7 +133,13 @@ module tb_router;
                 REASON_INVALID_ADDR:    reason_str = "INVALID_ADDR";
                 REASON_ALL_DST_MASKED:  reason_str = "ALL_DST_MASKED";
                 REASON_AER_MULTICAST:   $sformat(reason_str, "AER_MULTICAST_0x%s", hex_byte_upper(out_reason_aux));
-                REASON_SLOT_MISMATCH:   $sformat(reason_str, "SLOT_MISMATCH_SLOT%0d_REQ%0d_SCHED%0d", out_reason_aux[7:4], out_layer, out_reason_aux[1:0]);
+                REASON_SLOT_MISMATCH: begin
+                    if (out_reason_aux[2]) begin
+                        $sformat(reason_str, "SLOT_MISMATCH_SLOT%0d_REQ%0d_SCHED%0d", out_reason_aux[7:4], out_layer, out_reason_aux[1:0]);
+                    end else begin
+                        $sformat(reason_str, "SLOT_MISMATCH_SLOT%0d_REQ%0d_SCHEDNone", out_reason_aux[7:4], out_layer);
+                    end
+                end
                 REASON_TDM_PHYS_POOL:   $sformat(reason_str, "TDM_PHYS_POOL_P%0d", out_reason_aux[2:0]);
                 REASON_EARLY_EXIT:      reason_str = "EARLY_EXIT";
                 REASON_LAYER_BYPASS:    $sformat(reason_str, "BYPASS_LAYER_%0d", out_reason_aux[1:0]);
@@ -194,14 +200,14 @@ module tb_router;
 
         // Process stimulus entries
         stim_idx = 0;
-        while (stim_idx < 256) begin
+        while (stim_idx < 2048) begin
             cur_entry = stim_mem[stim_idx];
 
             if (cur_entry[63] == 1'b0) begin
                 // --- Command Entry ---
                 if (cur_entry[62:56] == 7'h7F) begin
                     // EOF sentinel reached
-                    stim_idx = 256;
+                    stim_idx = 2048;
                 end else begin
                     // Wait until DUT is ready to accept commands
                     while (!in_ready) @(posedge clk);
