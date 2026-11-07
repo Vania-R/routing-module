@@ -13,12 +13,15 @@ Status: simulated in Icarus Verilog only. Not synthesized, not on a board, not y
 
 ## API the policy engine calls
 
+```
 set_routing_mode(mode)
 set_active_layers(n)
 set_active_neurons(layer, k)
 load_route_table(src, dst_mask)
 set_tdm_schedule(slot, layer)
+set_layer_bypass(layer, enable)   # used by mode 3
 commit()
+```
 
 Everything is staged and applied atomically on commit(), between inputs.
 
